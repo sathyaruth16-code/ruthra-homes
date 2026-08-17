@@ -174,25 +174,7 @@ function showMessage(message, type = 'success') {
   setTimeout(() => alert.remove(), 5000);
 }
 
-function openGoogleAuthModal(mode = 'login') {
-  const modal = document.getElementById('google-auth-modal');
-  const modeInput = document.getElementById('google-auth-mode');
-  const title = document.getElementById('google-auth-title');
-  const roleGroup = document.getElementById('google-role-group');
-
-  modeInput.value = mode;
-  title.textContent = mode === 'signup' ? 'Sign up with Google' : 'Continue with Google';
-  roleGroup.style.display = mode === 'signup' ? 'block' : 'none';
-  modal.classList.add('show');
-}
-
-function closeGoogleAuthModal() {
-  const modal = document.getElementById('google-auth-modal');
-  modal.classList.remove('show');
-  document.getElementById('google-auth-form').reset();
-}
-
-// Auth
+// Auth event listeners
 document.getElementById('signup-toggle')?.addEventListener('click', (e) => {
   e.preventDefault();
   showPage(pages.signup);
@@ -203,67 +185,11 @@ document.getElementById('login-toggle')?.addEventListener('click', (e) => {
   showPage(pages.login);
 });
 
-document.getElementById('google-login-btn')?.addEventListener('click', () => {
-  openGoogleAuthModal('login');
-});
-
-document.getElementById('google-signup-btn')?.addEventListener('click', () => {
-  openGoogleAuthModal('signup');
-});
-
-document.querySelectorAll('[data-close="google-auth-modal"]').forEach((button) => {
-  button.addEventListener('click', closeGoogleAuthModal);
-});
-
 document.querySelectorAll('[data-close="upi-qr-modal"]').forEach((button) => {
   button.addEventListener('click', () => {
     document.getElementById('upi-qr-modal').classList.remove('show');
     document.getElementById('upi-qr-form').reset();
   });
-});
-
-document.getElementById('google-auth-modal')?.addEventListener('click', (event) => {
-  if (event.target.id === 'google-auth-modal') {
-    closeGoogleAuthModal();
-  }
-});
-
-document.getElementById('google-auth-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const mode = document.getElementById('google-auth-mode').value;
-  const full_name = document.getElementById('google-name').value.trim();
-  const email = document.getElementById('google-email').value.trim();
-  const role = document.getElementById('google-role')?.value || 'tenant';
-
-  try {
-    const result = await API.googleAuth(email, full_name, role, `google-demo-${Date.now()}`);
-    if (result.token) {
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('userRole', result.user.role);
-      currentUser = result.user;
-      closeGoogleAuthModal();
-
-      if (result.user.role === 'admin') {
-        loadAdminDashboard();
-        showPage(pages.adminDashboard);
-      } else {
-        loadTenantDashboard();
-        showPage(pages.tenantDashboard);
-      }
-
-      if (mode === 'signup') {
-        showMessage('Google sign-up successful!', 'success');
-      } else {
-        showMessage('Google login successful!', 'success');
-      }
-    } else {
-      showMessage(result.message || 'Google authentication failed', 'error');
-    }
-  } catch (error) {
-    console.error(error);
-    showMessage('Google authentication failed', 'error');
-  }
 });
 
 document.getElementById('login-form')?.addEventListener('submit', async (e) => {
