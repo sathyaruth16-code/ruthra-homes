@@ -1,4 +1,7 @@
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 
+  window.location.hostname === 'localhost'
+    ? 'http://localhost:5000/api'
+    : 'https://your-render-backend-url.onrender.com/api';
 
 class API {
   static getToken() {

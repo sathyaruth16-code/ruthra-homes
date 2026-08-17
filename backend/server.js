@@ -12,7 +12,13 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:8000',
+    'https://your-vercel-site.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
