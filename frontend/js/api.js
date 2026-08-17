@@ -1,7 +1,7 @@
 // Backend URL configuration for production
 // For local development: uses localhost:5000
 // For production: uses your Render backend URL
-const RENDER_BACKEND_URL = 'https://ruthrahomes-backend.onrender.com';
+const RENDER_BACKEND_URL = 'https://ruthra-homes-backend.onrender.com';
 
 const API_BASE = 
   window.location.hostname === 'localhost'
