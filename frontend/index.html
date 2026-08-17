@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruthra Homes - Rental Management</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Page -->
+        <div id="login-page" class="page active">
+            <div class="login-container">
+                <div class="login-box">
+                    <div class="brand-wrap center-brand">
+                        <div class="brand-logo" aria-label="Ruthra Homes logo">
+                            <svg viewBox="0 0 64 64" aria-hidden="true">
+                                <path d="M10 30L32 12L54 30V52C54 54.2 52.2 56 50 56H38V38H26V56H14C11.8 56 10 54.2 10 52V30Z" fill="white" opacity="0.96"/>
+                                <path d="M18 28L32 17L46 28" fill="none" stroke="#1f7a4d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M24 31H40V56H24V31Z" fill="#1f7a4d" opacity="0.18"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1>Ruthra Homes</h1>
+                        </div>
+                    </div>
+                    <p class="subtitle">Rental Management System</p>
+
+                    <button type="button" id="google-login-btn" class="btn btn-google btn-block">Continue with Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Page -->
+        <div id="signup-page" class="page" style="display: none;">
+            <div class="signup-container">
+                <div class="signup-box">
+                    <h1>Continue with Google</h1>
+
+                    <button type="button" id="google-signup-btn" class="btn btn-google btn-block">Sign up with Google</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="page">
+            <header class="navbar">
+                <div class="navbar-brand">
+                    <div class="brand-wrap">
+                        <div class="brand-logo small-logo" aria-label="Ruthra Homes logo">
+                            <svg viewBox="0 0 64 64" aria-hidden="true">
+                                <path d="M10 30L32 12L54 30V52C54 54.2 52.2 56 50 56H38V38H26V56H14C11.8 56 10 54.2 10 52V30Z" fill="white" opacity="0.96"/>
+                                <path d="M18 28L32 17L46 28" fill="none" stroke="#1f7a4d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M24 31H40V56H24V31Z" fill="#1f7a4d" opacity="0.18"/>
+                            </svg>
+                        </div>
+                        <span>Ruthra Homes Admin</span>
+                    </div>
+                </div>
+                <nav class="navbar-nav">
+                    <a href="#" class="nav-link active" data-section="overview">Dashboard</a>
+                    <a href="#" class="nav-link" data-section="rooms">Rooms</a>
+                    <a href="#" class="nav-link" data-section="tenants">Tenants</a>
+                    <a href="#" class="nav-link" data-section="rent-management">Rent Management</a>
+                </nav>
+                <button id="logout-btn" class="btn btn-logout">Logout</button>
+            </header>
+
+            <div class="container">
+                <!-- Dashboard Overview Section -->
+                <section id="overview-section" class="admin-section active">
+                    <h2>Dashboard</h2>
+                    <div class="dashboard-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Rooms</div>
+                            <div class="stat-value" id="total-rooms">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Active Tenants</div>
+                            <div class="stat-value" id="active-tenants">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Pending Applications</div>
+                            <div class="stat-value" id="pending-apps">0</div>
+                        </div>
+                    </div>
+
+                    <div class="upi-settings-card">
+                        <div class="upi-settings-header">
+                            <h3>UPI Payment QR</h3>
+                            <button class="btn btn-primary btn-sm" id="upload-upi-btn">Upload / Change QR</button>
+                        </div>
+                        <div class="upi-preview-box">
+                            <img id="admin-upi-preview" src="" alt="UPI QR preview" class="upi-preview-image hidden" />
+                            <div id="upi-placeholder" class="upi-placeholder">No QR uploaded yet</div>
+                        </div>
+                    </div>
+
+                    <div class="rent-summary">
+                        <h3>Monthly Rent - <span id="current-month"></span></h3>
+                        <div class="rent-grid">
+                            <div class="rent-card">
+                                <div class="rent-label">Total Expected Rent</div>
+                                <div class="rent-value" id="total-expected">₹0</div>
+                            </div>
+                            <div class="rent-card">
+                                <div class="rent-label">Rent Collected</div>
+                                <div class="rent-value" id="total-collected">₹0</div>
+                            </div>
+                            <div class="rent-card">
+                                <div class="rent-label">Rent Pending</div>
+                                <div class="rent-value" id="total-pending">₹0</div>
+                            </div>
+                            <div class="rent-card overdue">
+                                <div class="rent-label">Rent Overdue</div>
+                                <div class="rent-value" id="total-overdue">₹0</div>
+                            </div>
+                        </div>
+
+                        <div class="rent-stats">
+                            <div class="stat-item">
+                                <span>Tenants who paid:</span>
+                                <strong id="paid-count">0</strong>
+                            </div>
+                            <div class="stat-item">
+                                <span>Tenants who haven't paid:</span>
+                                <strong id="unpaid-count">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rooms Section -->
+                <section id="rooms-section" class="admin-section">
+                    <h2>Manage Rooms</h2>
+                    <button class="btn btn-primary" id="add-room-btn">Add New Room</button>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room Number</th>
+                                <th>Total Beds</th>
+                                <th>Status</th>
+                                <th>Active Tenants</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rooms-table-body">
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Tenants Section -->
+                <section id="tenants-section" class="admin-section">
+                    <h2>Manage Tenants</h2>
+                    <button class="btn btn-primary" id="add-tenant-btn">Add New Tenant</button>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Room</th>
+                                <th>Monthly Rent</th>
+                                <th>Move-in Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tenants-table-body">
+                        </tbody>
+                    </table>
+                </section>
+
+                <!-- Rent Management Section -->
+                <section id="rent-management-section" class="admin-section">
+                    <h2>Rent Management</h2>
+                    <div class="rent-filters">
+                        <input type="month" id="rent-month-filter" value="">
+                        <button class="btn btn-primary" id="filter-rent-btn">Filter</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room</th>
+                                <th>Tenant</th>
+                                <th>Rent Month</th>
+                                <th>Expected Rent</th>
+                                <th>Amount Paid</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rent-table-body">
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </div>
+
+        <!-- Tenant Dashboard -->
+        <div id="tenant-dashboard" class="page">
+            <header class="navbar">
+                <div class="navbar-brand">
+                    <div class="brand-wrap">
+                        <div class="brand-logo small-logo" aria-label="Ruthra Homes logo">
+                            <svg viewBox="0 0 64 64" aria-hidden="true">
+                                <path d="M10 30L32 12L54 30V52C54 54.2 52.2 56 50 56H38V38H26V56H14C11.8 56 10 54.2 10 52V30Z" fill="white" opacity="0.96"/>
+                                <path d="M18 28L32 17L46 28" fill="none" stroke="#1f7a4d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M24 31H40V56H24V31Z" fill="#1f7a4d" opacity="0.18"/>
+                            </svg>
+                        </div>
+                        <span>Ruthra Homes</span>
+                    </div>
+                </div>
+                <nav class="navbar-nav">
+                    <a href="#" class="nav-link active" data-section="my-rent">My Rent</a>
+                    <a href="#" class="nav-link" data-section="rent-history">Rent History</a>
+                </nav>
+                <button id="tenant-logout-btn" class="btn btn-logout">Logout</button>
+            </header>
+
+            <div class="container">
+                <!-- My Rent Section -->
+                <section id="my-rent-section" class="tenant-section active">
+                    <h2>My Rent</h2>
+                    <div class="tenant-info-card">
+                        <div class="info-row">
+                            <span class="info-label">Room:</span>
+                            <span class="info-value" id="my-room">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Monthly Rent:</span>
+                            <span class="info-value" id="my-monthly-rent">-</span>
+                        </div>
+                    </div>
+
+                    <div class="upi-payment-card">
+                        <h3>Pay Rent via Google Pay UPI</h3>
+                        <p>Scan the QR code below with your UPI app and confirm the payment manually.</p>
+                        <div class="upi-payment-box">
+                            <img id="tenant-upi-qr" src="" alt="Google Pay UPI QR" class="upi-payment-image hidden" />
+                            <div id="tenant-upi-empty" class="upi-empty-state">QR not available yet</div>
+                        </div>
+                    </div>
+
+                    <div id="upcoming-rent-container">
+                    </div>
+                </section>
+
+                <!-- Rent History Section -->
+                <section id="rent-history-section" class="tenant-section">
+                    <h2>Rent History</h2>
+                    <div class="rent-history-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Rent Month</th>
+                                    <th>Due Date</th>
+                                    <th>Expected Rent</th>
+                                    <th>Amount Paid</th>
+                                    <th>Payment Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="add-room-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add New Room</h2>
+            <form id="add-room-form">
+                <div class="form-group">
+                    <label for="room-number">Room Number</label>
+                    <input type="text" id="room-number" required>
+                </div>
+                <div class="form-group">
+                    <label for="room-beds">Total Beds</label>
+                    <input type="number" id="room-beds" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="room-description">Description</label>
+                    <textarea id="room-description"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Room</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-tenant-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Add New Tenant</h2>
+            <form id="add-tenant-form">
+                <div class="form-group">
+                    <label for="tenant-user-id">Select User (Tenant)</label>
+                    <select id="tenant-user-id" required>
+                        <option value="">Select a tenant user...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tenant-room-id">Room</label>
+                    <select id="tenant-room-id" required>
+                        <option value="">Select a room...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tenant-move-in">Move-in Date</label>
+                    <input type="date" id="tenant-move-in" required>
+                </div>
+                <div class="form-group">
+                    <label for="tenant-monthly-rent">Monthly Rent (₹)</label>
+                    <input type="number" id="tenant-monthly-rent" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="tenant-security-deposit">Security Deposit (₹)</label>
+                    <input type="number" id="tenant-security-deposit" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="tenant-advance">Advance Amount (₹)</label>
+                    <input type="number" id="tenant-advance" step="0.01">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Tenant</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="record-payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Record Rent Payment</h2>
+            <form id="record-payment-form">
+                <input type="hidden" id="payment-tenant-id">
+                <input type="hidden" id="payment-rent-month">
+                <input type="hidden" id="payment-expected-rent">
+
+                <div class="form-group">
+                    <label for="payment-amount">Amount Paid (₹)</label>
+                    <input type="number" id="payment-amount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="payment-date">Payment Date</label>
+                    <input type="date" id="payment-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="payment-method">Payment Method</label>
+                    <select id="payment-method">
+                        <option value="">Not Specified</option>
+                        <option value="cash">Cash</option>
+                        <option value="bank_transfer">Bank Transfer</option>
+                        <option value="upi">UPI</option>
+                        <option value="check">Check</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment-reference">Transaction Reference</label>
+                    <input type="text" id="payment-reference">
+                </div>
+                <div class="form-group">
+                    <label for="payment-remarks">Admin Remarks</label>
+                    <textarea id="payment-remarks"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Record Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="google-auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-close="google-auth-modal">&times;</span>
+            <h3 id="google-auth-title">Continue with Google</h3>
+            <form id="google-auth-form">
+                <input type="hidden" id="google-auth-mode" value="login">
+
+                <div class="form-group">
+                    <label for="google-name">Full Name</label>
+                    <input type="text" id="google-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="google-email">Google Email</label>
+                    <input type="email" id="google-email" required>
+                </div>
+
+                <div class="form-group" id="google-role-group">
+                    <label for="google-role">Register as</label>
+                    <select id="google-role">
+                        <option value="tenant">Tenant</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Continue</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="upi-qr-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" data-close="upi-qr-modal">&times;</span>
+            <h3>Upload UPI QR Image</h3>
+            <form id="upi-qr-form">
+                <div class="form-group">
+                    <label for="upi-qr-file">Choose QR image</label>
+                    <input type="file" id="upi-qr-file" accept="image/*">
+                </div>
+                <div class="upi-modal-preview">
+                    <img id="upi-modal-preview-image" src="" alt="UPI QR preview" class="upi-preview-image hidden" />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Save QR</button>
+                <button type="button" class="btn btn-logout btn-block" id="remove-upi-qr-btn">Remove QR</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
