@@ -49,8 +49,11 @@ function handleCredentialResponse(response) {
  */
 async function authenticateWithGoogle(googleUser) {
   try {
+    console.log('Starting Google authentication for:', googleUser.email);
+    
     // Determine role based on email
     const userRole = isAdminEmail(googleUser.email) ? 'admin' : 'tenant';
+    console.log('User role determined:', userRole);
     
     // Call backend Google auth endpoint
     const result = await API.googleAuth(
@@ -59,6 +62,8 @@ async function authenticateWithGoogle(googleUser) {
       userRole,
       googleUser.sub
     );
+    
+    console.log('Backend response:', result);
     
     if (result.token) {
       // Store authentication data
@@ -72,28 +77,26 @@ async function authenticateWithGoogle(googleUser) {
       
       // Navigate based on role and status
       if (result.user.role === 'admin') {
+        console.log('Admin user, loading admin dashboard');
         // Load and show admin dashboard
-        setTimeout(() => {
-          loadAdminDashboard();
-          showPage(pages.adminDashboard);
-        }, 500);
+        loadAdminDashboard();
+        showPage(pages.adminDashboard);
       } else {
+        console.log('Non-admin user, isNewUser:', result.isNewUser);
         // Non-admin: check if new user or existing
         // If new user (just created), show registration page
         // Otherwise show tenant dashboard
         if (result.isNewUser) {
           // New tenant - show registration/onboarding
+          console.log('New user - showing registration page');
           document.getElementById('reg-name').value = result.user.full_name;
           document.getElementById('reg-email').value = result.user.email;
-          setTimeout(() => {
-            showPage(pages.tenantRegistration);
-          }, 500);
+          showPage(pages.tenantRegistration);
         } else {
           // Existing tenant - show dashboard
-          setTimeout(() => {
-            loadTenantDashboard();
-            showPage(pages.tenantDashboard);
-          }, 500);
+          console.log('Existing user - loading tenant dashboard');
+          loadTenantDashboard();
+          showPage(pages.tenantDashboard);
         }
       }
     } else {
@@ -101,7 +104,7 @@ async function authenticateWithGoogle(googleUser) {
     }
   } catch (error) {
     console.error('Google authentication error:', error);
-    showMessage('Error during authentication', 'error');
+    showMessage('Error during authentication: ' + error.message, 'error');
   }
 }
 
@@ -178,8 +181,15 @@ function formatRentMonth(rentMonth) {
 
 // Show page
 function showPage(page) {
-  Object.values(pages).forEach(p => p.classList.remove('active'));
+  if (!page) {
+    console.error('Page is null or undefined', page);
+    return;
+  }
+  Object.values(pages).forEach(p => {
+    if (p) p.classList.remove('active');
+  });
   page.classList.add('active');
+  console.log('Showing page:', page.id);
 }
 
 function updateUpiQrDisplay() {
@@ -350,12 +360,20 @@ document.getElementById('signup-form')?.addEventListener('submit', async (e) => 
 // Logout
 document.getElementById('logout-btn')?.addEventListener('click', () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('profileCompleted');
   currentUser = null;
   showPage(pages.login);
 });
 
 document.getElementById('tenant-logout-btn')?.addEventListener('click', () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('userRole');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userName');
+  localStorage.removeItem('profileCompleted');
   currentUser = null;
   showPage(pages.login);
 });
