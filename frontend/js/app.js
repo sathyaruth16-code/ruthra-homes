@@ -2,6 +2,87 @@
 let currentUser = null;
 const UPI_QR_STORAGE_KEY = 'ruthrahomes.upiQrImage';
 
+// ============================================================
+// GOOGLE OAUTH CONFIGURATION
+// ============================================================
+const GOOGLE_CLIENT_ID = '324209073202-ce7n2pk77gmmiefvd45b0sa9d7rf3nl2.apps.googleusercontent.com';
+
+/**
+ * Handles the response from Google Sign-In
+ */
+function handleCredentialResponse(response) {
+  try {
+    // Decode the JWT from Google
+    const base64Url = response.credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    const googleUser = JSON.parse(jsonPayload);
+    
+    console.log('Google Sign-In successful:', googleUser);
+    
+    // Send to backend for verification and JWT generation
+    authenticateWithGoogle(googleUser);
+  } catch (error) {
+    console.error('Error decoding Google credential:', error);
+    showMessage('Error processing Google sign-in', 'error');
+  }
+}
+
+/**
+ * Authenticates user with backend using Google credentials
+ */
+async function authenticateWithGoogle(googleUser) {
+  try {
+    // Call backend Google auth endpoint
+    const result = await API.googleAuth(
+      googleUser.email, 
+      googleUser.name, 
+      'tenant',
+      googleUser.sub
+    );
+    
+    if (result.token) {
+      // Store authentication data
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('userRole', result.user.role);
+      currentUser = result.user;
+      
+      showMessage('Google sign-in successful!', 'success');
+      
+      // Reload page after 1 second to trigger dashboard load
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      showMessage(result.message || 'Google authentication failed', 'error');
+    }
+  } catch (error) {
+    console.error('Google authentication error:', error);
+    showMessage('Error during authentication', 'error');
+  }
+}
+
+/**
+ * Initialize Google Sign-In when the page loads
+ */
+window.addEventListener('load', () => {
+  if (window.google && window.google.accounts && window.google.accounts.id) {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredentialResponse,
+      auto_select: false
+    });
+  } else {
+    console.warn('Google Sign-In library not loaded');
+  }
+});
+
+// ============================================================
+// END GOOGLE OAUTH CONFIGURATION
+// ============================================================
+
 // Page navigation
 const pages = {
   login: document.getElementById('login-page'),
@@ -159,6 +240,7 @@ document.getElementById('google-auth-form')?.addEventListener('submit', async (e
     const result = await API.googleAuth(email, full_name, role, `google-demo-${Date.now()}`);
     if (result.token) {
       localStorage.setItem('token', result.token);
+      localStorage.setItem('userRole', result.user.role);
       currentUser = result.user;
       closeGoogleAuthModal();
 
@@ -193,6 +275,7 @@ document.getElementById('login-form')?.addEventListener('submit', async (e) => {
     const result = await API.login(email, password);
     if (result.token) {
       localStorage.setItem('token', result.token);
+      localStorage.setItem('userRole', result.user.role);
       currentUser = result.user;
       
       if (result.user.role === 'admin') {
@@ -685,15 +768,38 @@ document.querySelectorAll('.modal').forEach(modal => {
 });
 
 // Check if user is logged in on page load
-// For local UI testing, open the dashboard by default.
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   updateUpiQrDisplay();
   const token = localStorage.getItem('token');
+  
   if (token) {
-    // User is logged in, show their dashboard when token exists.
-    // This is kept simple for the local testing flow.
-    showPage(pages.adminDashboard);
+    try {
+      // Verify token is still valid
+      const dashboardResult = await API.getDashboard();
+      if (dashboardResult && !dashboardResult.error) {
+        // Token is valid
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'admin') {
+          loadAdminDashboard();
+          showPage(pages.adminDashboard);
+        } else {
+          loadTenantDashboard();
+          showPage(pages.tenantDashboard);
+        }
+      } else {
+        // Token is invalid, show login
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        showPage(pages.login);
+      }
+    } catch (error) {
+      console.error('Token validation error:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      showPage(pages.login);
+    }
   } else {
-    showPage(pages.adminDashboard);
+    // No token, show login page
+    showPage(pages.login);
   }
 });

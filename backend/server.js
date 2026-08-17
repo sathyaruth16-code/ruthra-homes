@@ -15,7 +15,8 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:8000',
-    'https://your-vercel-site.vercel.app'
+    'http://localhost:3000',
+    'https://ruthra-homes.vercel.app'
   ],
   credentials: true
 }));
