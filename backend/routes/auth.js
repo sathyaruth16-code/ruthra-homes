@@ -110,8 +110,10 @@ router.post('/google', [
   try {
     const { email, full_name, role = 'tenant', google_id } = req.body;
     let userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    let isNewUser = false;
 
     if (userResult.rows.length === 0) {
+      isNewUser = true;
       const tempPassword = google_id || `${email}-google-auth`;
       const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
@@ -134,6 +136,7 @@ router.post('/google', [
     res.json({
       message: 'Google authentication successful',
       token,
+      isNewUser,
       user: {
         id: user.id,
         email: user.email,

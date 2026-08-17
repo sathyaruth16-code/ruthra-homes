@@ -64,14 +64,38 @@ async function authenticateWithGoogle(googleUser) {
       // Store authentication data
       localStorage.setItem('token', result.token);
       localStorage.setItem('userRole', result.user.role);
+      localStorage.setItem('userId', result.user.id);
+      localStorage.setItem('userName', result.user.full_name);
       currentUser = result.user;
       
       showMessage('Google sign-in successful!', 'success');
       
-      // Reload page after 1 second to trigger dashboard load
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      // Navigate based on role and status
+      if (result.user.role === 'admin') {
+        // Load and show admin dashboard
+        setTimeout(() => {
+          loadAdminDashboard();
+          showPage(pages.adminDashboard);
+        }, 500);
+      } else {
+        // Non-admin: check if new user or existing
+        // If new user (just created), show registration page
+        // Otherwise show tenant dashboard
+        if (result.isNewUser) {
+          // New tenant - show registration/onboarding
+          document.getElementById('reg-name').value = result.user.full_name;
+          document.getElementById('reg-email').value = result.user.email;
+          setTimeout(() => {
+            showPage(pages.tenantRegistration);
+          }, 500);
+        } else {
+          // Existing tenant - show dashboard
+          setTimeout(() => {
+            loadTenantDashboard();
+            showPage(pages.tenantDashboard);
+          }, 500);
+        }
+      }
     } else {
       showMessage(result.message || 'Google authentication failed', 'error');
     }
@@ -123,7 +147,8 @@ const pages = {
   login: document.getElementById('login-page'),
   signup: document.getElementById('signup-page'),
   adminDashboard: document.getElementById('admin-dashboard'),
-  tenantDashboard: document.getElementById('tenant-dashboard')
+  tenantDashboard: document.getElementById('tenant-dashboard'),
+  tenantRegistration: document.getElementById('tenant-registration')
 };
 
 // Helper function to format date
@@ -218,6 +243,48 @@ document.getElementById('signup-toggle')?.addEventListener('click', (e) => {
 document.getElementById('login-toggle')?.addEventListener('click', (e) => {
   e.preventDefault();
   showPage(pages.login);
+});
+
+// Tenant Registration Form
+document.getElementById('tenant-registration-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const phone = document.getElementById('reg-phone').value;
+  const room = document.getElementById('reg-room').value || null;
+  
+  try {
+    // Call backend to update tenant profile
+    const result = await API.updateTenant(localStorage.getItem('userId'), {
+      phone: phone,
+      room_number: room
+    });
+    
+    if (result.success || result.message) {
+      showMessage('Profile completed successfully!', 'success');
+      localStorage.setItem('profileCompleted', 'true');
+      
+      setTimeout(() => {
+        loadTenantDashboard();
+        showPage(pages.tenantDashboard);
+      }, 500);
+    } else {
+      showMessage('Failed to save profile', 'error');
+    }
+  } catch (error) {
+    console.error('Error saving profile:', error);
+    showMessage('Error saving profile', 'error');
+  }
+});
+
+// Skip registration
+document.getElementById('skip-registration')?.addEventListener('click', () => {
+  showMessage('You can update your profile later in settings', 'info');
+  localStorage.setItem('profileCompleted', 'true');
+  
+  setTimeout(() => {
+    loadTenantDashboard();
+    showPage(pages.tenantDashboard);
+  }, 500);
 });
 
 document.querySelectorAll('[data-close="upi-qr-modal"]').forEach((button) => {
@@ -732,26 +799,27 @@ document.querySelectorAll('.modal').forEach(modal => {
 document.addEventListener('DOMContentLoaded', async () => {
   updateUpiQrDisplay();
   const token = localStorage.getItem('token');
+  const userRole = localStorage.getItem('userRole');
   
   if (token) {
     try {
-      // Verify token is still valid
-      const dashboardResult = await API.getDashboard();
-      if (dashboardResult && !dashboardResult.error) {
-        // Token is valid
-        const userRole = localStorage.getItem('userRole');
-        if (userRole === 'admin') {
+      // For admin, verify token is still valid
+      if (userRole === 'admin') {
+        const dashboardResult = await API.getDashboard();
+        if (dashboardResult && !dashboardResult.error) {
+          // Token is valid
           loadAdminDashboard();
           showPage(pages.adminDashboard);
         } else {
-          loadTenantDashboard();
-          showPage(pages.tenantDashboard);
+          // Token is invalid, show login
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+          showPage(pages.login);
         }
       } else {
-        // Token is invalid, show login
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
-        showPage(pages.login);
+        // For tenant, just show the dashboard (token is valid if it's in storage)
+        loadTenantDashboard();
+        showPage(pages.tenantDashboard);
       }
     } catch (error) {
       console.error('Token validation error:', error);
