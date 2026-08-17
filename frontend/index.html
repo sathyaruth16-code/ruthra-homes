@@ -29,22 +29,7 @@
                     <p class="subtitle">Rental Management System</p>
 
                     <!-- Google Sign-In Button -->
-                    <div id="google-signin-button" class="google-signin-container"></div>
-                    <script>
-                        window.addEventListener('load', () => {
-                            if (window.google && window.google.accounts && window.google.accounts.id) {
-                                google.accounts.id.renderButton(
-                                    document.getElementById('google-signin-button'),
-                                    { 
-                                        theme: 'filled_blue',
-                                        size: 'large',
-                                        width: '100%',
-                                        text: 'signin'
-                                    }
-                                );
-                            }
-                        });
-                    </script>
+                    <div id="google-signin-button" class="google-signin-container" style="display: flex; justify-content: center; margin-top: 20px;"></div>
                 </div>
             </div>
         </div>

@@ -5,7 +5,21 @@ const UPI_QR_STORAGE_KEY = 'ruthrahomes.upiQrImage';
 // ============================================================
 // GOOGLE OAUTH CONFIGURATION
 // ============================================================
+
+// Admin emails - users with these emails will automatically be admins
+const ADMIN_EMAILS = [
+  'sathyaruth16@gmail.com',
+  'ruthirakotti574@gmail.com'
+];
+
 const GOOGLE_CLIENT_ID = '324209073202-ce7n2pk77gmmiefvd45b0sa9d7rf3nl2.apps.googleusercontent.com';
+
+/**
+ * Check if email is admin
+ */
+function isAdminEmail(email) {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}
 
 /**
  * Handles the response from Google Sign-In
@@ -35,11 +49,14 @@ function handleCredentialResponse(response) {
  */
 async function authenticateWithGoogle(googleUser) {
   try {
+    // Determine role based on email
+    const userRole = isAdminEmail(googleUser.email) ? 'admin' : 'tenant';
+    
     // Call backend Google auth endpoint
     const result = await API.googleAuth(
       googleUser.email, 
       googleUser.name, 
-      'tenant',
+      userRole,
       googleUser.sub
     );
     
@@ -67,17 +84,35 @@ async function authenticateWithGoogle(googleUser) {
 /**
  * Initialize Google Sign-In when the page loads
  */
-window.addEventListener('load', () => {
+function initGoogleSignIn() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
       auto_select: false
     });
+    
+    // Render the button
+    const buttonContainer = document.getElementById('google-signin-button');
+    if (buttonContainer) {
+      google.accounts.id.renderButton(
+        buttonContainer,
+        { 
+          theme: 'filled_blue',
+          size: 'large',
+          width: '100%',
+          text: 'signin'
+        }
+      );
+    }
   } else {
-    console.warn('Google Sign-In library not loaded');
+    console.warn('Google Sign-In library not loaded, retrying...');
+    setTimeout(initGoogleSignIn, 500);
   }
-});
+}
+
+// Initialize Google Sign-In when window loads
+window.addEventListener('load', initGoogleSignIn);
 
 // ============================================================
 // END GOOGLE OAUTH CONFIGURATION
